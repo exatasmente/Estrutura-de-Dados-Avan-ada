@@ -241,69 +241,6 @@ void DFS( Tree *tree ) {
 	traverseDFS( tree->root, 0 );
 }
 
-Tree *remove(Tree *node, Tree *key, bool h) {
-
-    Node *remNode;
-    if (node->right != NULL) {
-        node->right = remove(node->right, key, h);
-        if (h) node = balance(node);
-    }
-    else {
-        key->value = node->value;
-        remNode = node;
-        node = node->left;
-        *h = true;
-        free(no_removido);
-    }
-    return(no);
-}
-
-/*
-*  Remoção da Árvore AVL
-*/
-AVL *remove(AVL *raiz, int info, bool *h) {
-
-    if (raiz == NULL) {
-        printf("Chave não localizada !");
-        *h = false;
-    }
-    else {
-        if (raiz->info > info) {
-            raiz->esq = remove(raiz->esq, info, h);
-            if (*h)
-                raiz = balanceamento_esquerdo(raiz, h);
-        }
-        else
-            if (raiz->info < info) {
-                raiz->dir = remove(raiz->dir, info, h);
-                if (*h)
-                    raiz = balanceamento_direito(raiz,h);
-            }
-            else { //Encontrou o elemento a ser removido
-                if (raiz->dir == NULL) {
-                    if (raiz->esq != NULL) //Escolhe o nó à esquerda como substituto
-                        raiz->esq->pai = raiz->pai;
-                    raiz = raiz->esq;
-                    *h = true;
-                }
-                else
-                    if (raiz->esq == NULL) {
-                        if (raiz->dir != NULL) //Escolhe o nó à direita como substituto
-                            raiz->dir->pai = raiz->pai;
-                        raiz = raiz->dir;
-                        *h = true;
-                    }
-                    else { // Busca o elemento mais à direita do nó esquerdo
-                        raiz->esq = busca_remove(raiz->esq, raiz, h);
-                        //Se necessário efetua balanceamento (Esquerdo pois a função 
-                        //busca_remove foi para o nó esquerdo)
-                        if (*h) 
-                            raiz = balanceamento_esquerdo(raiz, h);
-                    }
-            }
-    }
-    return(raiz);
-}
 void main(){
  
       tree = create();
