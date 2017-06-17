@@ -23,7 +23,7 @@ int avlHeight( Node *node );
 void insert( int val , Tree *tree) ;
 int search( Node *node, int val );
 int balanceFactor( Node *node );
-
+Node *removeNode(Node *node, int value);
 
 Tree *create() {
     Tree *tree = NULL;
@@ -74,6 +74,103 @@ int search( Node *node, int val ){
         return 1;
     }
 }
+Node *min(Node *node) {
+    Node *aux = node;
+    while (aux->left != NULL) { 
+        aux = aux->left;
+    }
+    return aux;
+}
+
+Node *max(Node *node) {
+    Node *aux = node;
+    while (aux->right != NULL) { 
+        aux = aux->right;
+    }
+    return aux;
+}
+
+
+Node *removeLeaf(Node *node) {
+    free(node);
+    return NULL;
+}
+
+
+Node *removeLeft(Node *node) {
+    Node *aux = node->left;
+    free(node);
+    return aux;
+}
+
+Node *removeRight(Node *node) {
+    Node *aux = node->right;
+    free(node);
+    return aux;
+}
+
+
+Node *removeBoth(Node *node) {
+    Node *aux;
+    int value;
+    if(balanceFactor(node->right) < balanceFactor(node->left)) aux = max(node->left);
+    else aux = min(node->right);
+    value = aux->value;
+    removeNode(node,aux->value);
+    node->value = value;
+
+    return node;
+}
+
+Node *_remove(Node *node) {
+
+    if (node->right == NULL && node->left == NULL) {
+        node = removeLeaf(node);
+    }
+    else {
+        if (node->right == NULL) {
+            node = removeLeft(node);
+        }
+        else {
+            if (node->left == NULL) {
+                node = removeRight(node);
+            }
+            else {
+                node = removeBoth(node);
+            }
+        }
+    }
+    return node;
+}
+
+
+
+
+Node *removeNode(Node *node, int value) {
+
+    if (node != NULL) {
+
+        if (node->value == value) {
+            node = _remove(node);
+        }
+        else {
+
+            if (value < node->value) {
+                node->left = removeNode(node->left, value);
+            }
+            else {
+                node->right = removeNode(node->right, value);
+            }
+               node = balanceNode(node);
+        }
+ 
+    }
+    else {
+        printf("Node : %d Not Found\n", value);
+    
+    }
+    return node;
+}
 
 void insert( int val , Tree *tree) {
 	Node *node = NULL;
@@ -93,10 +190,10 @@ void insert( int val , Tree *tree) {
 			    next = next->left;
 
 			} else if( val > next->value ) {
-				next = next->right;
+			     next = next->right;
 
 			} else if( val == next->value ) {
-                  break;
+                             break;
    		    }
 		}
 
@@ -131,6 +228,7 @@ int avlHeight( Node *node ) {
 
 
 Node *rotateLeftLeft( Node *node ) {
+
  	Node *a = node;
 	Node *b = a->left;
 	
@@ -141,6 +239,7 @@ Node *rotateLeftLeft( Node *node ) {
 }
 
 Node *rotateLeftRight( Node *node ) {
+
 	Node *a = node;
 	Node *b = a->left;
 	Node *c = b->right;
@@ -155,6 +254,7 @@ Node *rotateLeftRight( Node *node ) {
 
 
 Node *rotateRightLeft( Node *node ) {
+
 	Node *a = node;
 	Node *b = a->right;
 	Node *c = b->left;
@@ -169,6 +269,7 @@ Node *rotateRightLeft( Node *node ) {
 
 
 Node *rotateRightRight( Node *node ) {
+
 	Node *a = node;
 	Node *b = a->right;
 	
@@ -181,12 +282,14 @@ Node *rotateRightRight( Node *node ) {
 
 Node *balanceNode( Node *node ) {
 	Node *newroot = NULL;
+
 	if( node->left ){
-		node->left  = balanceNode( node->left  );
-    }
+		node->left  = balanceNode( node->left  );	
+        }
 	if( node->right ){
 		node->right = balanceNode( node->right );
-    }
+        }
+
 	int bf = balanceFactor( node );
 
 	if( bf >= 2 ) {
@@ -198,16 +301,16 @@ Node *balanceNode( Node *node ) {
  
 	}else{
            if( bf <= -2 ) {
-	           if( balanceFactor( node->right ) >= 1 ){
+	       if( balanceFactor( node->right ) >= 1 ){
 		           newroot = rotateRightLeft( node );
                }else{ 
 		           newroot = rotateRightRight( node );
                }
 
-	       }else{
-   		        newroot = node;
+	   }else{
+   	        newroot = node;
     	   }
-    }
+        }
 
 	return( newroot );	
 }
@@ -231,7 +334,7 @@ void traverseDFS( Node *node, int depth ) {
               traverseDFS( node->left, depth + 2 );
         }
 	for( i = 0; i < depth; i++ ) putchar( ' ' );
-	printf( "%d: %d\n", node->value, balanceFactor( node ) );
+	printf( "%d : %d\n", node->value,balanceFactor(node));
 
 	if( node->right ) traverseDFS( node->right, depth + 2 );
 }
@@ -241,19 +344,80 @@ void DFS( Tree *tree ) {
 	traverseDFS( tree->root, 0 );
 }
 
+inOrder( Node *tree )
+{
+    if (tree)
+    {
+        inOrder(tree->left);
+        printf("%d\n",tree->value);
+        inOrder(tree->right);
+    }
+}
+preOrder(Node *tree)
+{
+    if ( tree )
+    { 
+        printf("%d\n", tree->value );
+        preOrder( tree->left );
+        preOrder( tree->right );
+    }
+
+}
+posOrder(Node *tree)
+{
+    if ( tree )
+    { 
+        posOrder( tree->left );
+        posOrder( tree->right );
+        printf("%d\n", tree->value );
+    }
+
+}
+
 void main(){
  
       tree = create();
       int tmp = 0 ;
-      insert(20,tree); 
-      insert(10,tree);
-      insert(25,tree);
+      insert(8,tree); 
       insert(5,tree);
-      insert(15,tree);
-      insert(29,tree);
-      printf("BUSCA\n");
-      printf("%s\n\n",(search(tree->root,100))==1 ? "True" : "False");
-      DFS( tree );
-      
+      preOrder(tree->root);
+puts("-------------------");
+      insert(7,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(4,tree);
+      insert(12,tree);
+      preOrder(tree->root); 
+puts("-------------------");
+      insert(14,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(10,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(9,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(3,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(6,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(11,tree);
+      preOrder(tree->root);
+puts("-------------------");
+      insert(13,tree);
+
+puts("-------------------");
+      tree->root = removeNode(tree->root,3);
+      preOrder(tree->root);
+puts("-------------------");
+    tree->root = removeNode(tree->root,10);
+    tree->root = removeNode(tree->root,12);
+
+      puts("-------------------");
+      preOrder(tree->root);
+
 }
 
