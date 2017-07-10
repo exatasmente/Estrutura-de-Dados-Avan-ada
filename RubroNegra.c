@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+
+
 /*
  *  The Red Black Tree will need Respect 5 Conditions:
  *  1) a Node cude be RED or BLACK
@@ -19,6 +22,8 @@
 #define COLOR_BLUE    "\x1b[34m"
 #define COLOR_RESET   "\x1b[0m"
 
+char depth[ 2056 ];
+int di;
 
 typedef enum { BLACK, RED } Color;
 
@@ -39,8 +44,15 @@ typedef struct RBTree{
     
 }RB_Tree;
 
-void preorder(RB_Tree *tree,RB_Node *node);
 
+
+
+void preorder(RB_Tree *tree,RB_Node *node);
+int height(RB_Tree *tree, RB_Node *node );
+void Print(RB_Tree *tree, RB_Node* node );
+void DFS( RB_Tree *tree ); 
+void Push( char c ); 
+void Pop( );
 
 void insert(RB_Tree *tree, int value);
 RB_Node  *_insert(RB_Tree *tree,RB_Node *root,RB_Node *node );
@@ -62,7 +74,10 @@ RB_Tree* createTree();
 void removeNode(RB_Tree *tree, RB_Node * node);
 void RBremove(RB_Tree *tree,RB_Node *node, int value) ;
 
-RB_Node * min(RB_Tree* tree,RB_Node* node);
+RB_Node * sucessor(RB_Tree* tree,RB_Node* node);
+
+
+
 
 
 RB_Tree* createTree(){
@@ -569,7 +584,7 @@ void preorder(RB_Tree *tree,RB_Node *node){
 
 
 
-RB_Node * min(RB_Tree* tree,RB_Node* node) { 
+RB_Node * sucessor(RB_Tree* tree,RB_Node* node) { 
   RB_Node* aux;
 
   if ( node->right != tree->external) { 
@@ -623,7 +638,7 @@ void removeNode(RB_Tree *tree, RB_Node * node){
   RB_Node *root= tree->root;
 
   if(node->left != tree->external || node->right != tree->external)// If node Have Child
-     aux =  min(tree,node); //Get The Sucessor of Node 
+     aux =  sucessor(tree,node); //Get The Sucessor of Node 
   else // C.C
      aux = node;
      
@@ -649,27 +664,108 @@ void removeNode(RB_Tree *tree, RB_Node * node){
     
 
 }
+int height(RB_Tree *tree,RB_Node *node){
+	int hLeft = 0;
+	int hRight = 0;
 
-void traverseDFS(RB_Tree *tree, RB_Node *node, int depth ) {
-	int i = 0;
+	if( node->left !=  tree->external  ){
+            hLeft = height(tree,node->left);
+        }
+	if( node->right != tree->external ){
+            hRight = height(tree, node->right );
+        }
 
-
-	if( node->right != tree->external ) traverseDFS(tree, node->right, depth + 3 );
-	for( i = 0; i < depth; i++ ) putchar( ' ' );
-    if(node->color == RED)
-    	printf(COLOR_RED"%d\n",node->value);
-    else 
-        printf(COLOR_BLUE"%d\n",node->value);
-        
-   	if( node->left != tree->external ) traverseDFS(tree, node->left, depth + 3 );
-
+	return hRight > hLeft ? ++hRight : ++hLeft;
 }
 
+
+void Push( char c ){
+    depth[ di++ ] = ' ';
+    depth[ di++ ] = c;
+    depth[ di++ ] = ' ';
+    depth[ di++ ] = ' ';
+    depth[ di ] = 0;
+}
+
+void Pop( ){   
+    depth[ di -= 4 ] = 0;
+}
+ 
+void Print(RB_Tree *tree, RB_Node* node ){
+    if(node == tree->external)
+           printf(COLOR_BLUE"( )\n");
+    else{
+        if(node->color == RED)
+            printf(COLOR_RED"( %d )\n", node->value );
+        else
+           printf(COLOR_BLUE"( %d )\n", node->value );
+    }
+    if ( node != tree->external ){ 
+        printf(COLOR_RESET"%s `--", depth );
+        Push( '|' );
+        Print(tree, node->right );
+        Pop( );
+ 
+        printf(COLOR_RESET"%s `--", depth );
+        Push( ' ' );
+        Print(tree, node->left );
+        Pop( );
+    }
+}
 
 void DFS( RB_Tree *tree ) {
-	traverseDFS(tree, tree->root, 1 );
+   	Print(tree,tree->root);
+	
 }
 
+
+void bst_print_dot_null(int key, int nullcount, FILE* stream)
+{
+    fprintf(stream, "    null%d [label=\"NIL\", shape=record];\n", nullcount);
+    fprintf(stream, "    %d -> null%d;\n", key, nullcount);
+}
+
+void bst_print_dot_aux(RB_Tree *tree, RB_Node * node, FILE* stream)
+{
+    static int nullcount = 0;
+
+    if (node->left != tree->external)
+    {
+        if(node->left->color == RED)
+            fprintf(stream, "    %d [fillcolor=red]\n%d -> %d ;\n", node->left->value,node->value, node->left->value);
+        else
+            fprintf(stream, "    %d -> %d ;\n", node->value, node->left->value);
+        bst_print_dot_aux(tree,node->left, stream);
+    }
+    else
+        bst_print_dot_null(node->value, nullcount++, stream);
+
+    if (node->right != tree->external)
+    {
+        if(node->right->color == RED)
+            fprintf(stream, "    %d[fillcolor=red]\n%d -> %d;\n",node->right->value, node->value, node->right->value);
+        else
+            fprintf(stream, "    %d -> %d;\n", node->value, node->right->value);
+        bst_print_dot_aux(tree,node->right, stream);
+    }
+    else
+        bst_print_dot_null(node->value, nullcount++, stream);
+}
+
+void bst_print_dot(RB_Tree* tree,RB_Node *node, FILE* stream)
+{
+    fprintf(stream, "digraph RBTREE {\n");
+    fprintf(stream, "  graph [ratio=.48];\nnode [style=filled, color=black, shape=circle, width=.6\nfontname=Helvetica,fontweight=bold, fontcolor=white,fontsize=24, fixedsize=true];\n");
+
+    if (node == tree->external)
+        fprintf(stream, "\n");
+    else if (node->right == tree->external && node->left == tree->external)
+        fprintf(stream, "    %d;\n", node->value);
+    else
+        bst_print_dot_aux(tree,node, stream);
+
+    fprintf(stream, "}\n");
+}
 
 int main(){
     RB_Tree *tree1;
@@ -678,15 +774,15 @@ int main(){
     
     
  
-    insert(tree1,0);
+    insert(tree1,10);
     DFS(tree1 );    
     puts(COLOR_RESET"--------------------------");    
  
-    insert(tree1,1);
+    insert(tree1,15);
     DFS(tree1 );    
     puts(COLOR_RESET"--------------------------");    
        
-    insert(tree1,2);
+    insert(tree1,4);
     DFS(tree1 );    
     puts(COLOR_RESET"--------------------------");    
     
@@ -694,19 +790,26 @@ int main(){
     DFS(tree1 );    
     puts(COLOR_RESET"--------------------------");    
     
-    insert(tree1,14);
+    insert(tree1,6);
     DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-
-    insert(tree1,15);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-        
-
-    RBremove(tree1,tree1->root,5);
+    puts(COLOR_RESET"--------------------------");
     
-    DFS(tree1 );
+    insert(tree1,3);
+    DFS(tree1 );    
+    puts(COLOR_RESET"--------------------------");    
+    
+    insert(tree1,2);
+    DFS(tree1 );    
     puts(COLOR_RESET"--------------------------");        
+    insert(tree1,12);
+    DFS(tree1 );    
+    puts(COLOR_RESET"--------------------------");    
 
+
+    FILE *arq;
+    arq = fopen("tree.dot","w");
+    bst_print_dot(tree1,tree1->root, arq);
+    system("dot -Tsvg tree.dot -o tree.svg");
     return 0;
 }
+

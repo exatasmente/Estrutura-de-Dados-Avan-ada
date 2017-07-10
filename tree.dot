@@ -1,0 +1,34 @@
+digraph RBTREE {
+  graph [ratio=.48];
+node [style=filled, color=black, shape=circle, width=.6
+fontname=Helvetica,fontweight=bold, fontcolor=white,fontsize=24, fixedsize=true];
+    5 [fillcolor=red]
+10 -> 5 ;
+    5 -> 3 ;
+    2 [fillcolor=red]
+3 -> 2 ;
+    null0 [label="NIL", shape=record];
+    2 -> null0;
+    null1 [label="NIL", shape=record];
+    2 -> null1;
+    4[fillcolor=red]
+3 -> 4;
+    null2 [label="NIL", shape=record];
+    4 -> null2;
+    null3 [label="NIL", shape=record];
+    4 -> null3;
+    5 -> 6;
+    null4 [label="NIL", shape=record];
+    6 -> null4;
+    null5 [label="NIL", shape=record];
+    6 -> null5;
+    10 -> 15;
+    12 [fillcolor=red]
+15 -> 12 ;
+    null6 [label="NIL", shape=record];
+    12 -> null6;
+    null7 [label="NIL", shape=record];
+    12 -> null7;
+    null8 [label="NIL", shape=record];
+    15 -> null8;
+}
