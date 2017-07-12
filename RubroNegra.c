@@ -54,14 +54,19 @@ void DFS( RB_Tree *tree );
 void Push( char c ); 
 void Pop( );
 
+void rbDot(RB_Tree* tree,RB_Node *node, FILE* stream);
+void rbToDot(RB_Tree *tree, RB_Node * node, FILE* stream);
+void rbDotNil(int key, int nullcount, FILE* stream);
+
 void insert(RB_Tree *tree, int value);
 RB_Node  *_insert(RB_Tree *tree,RB_Node *root,RB_Node *node );
-
 void rBFix(RB_Node *root,RB_Node *node,RB_Tree *tree);
-void rBDelFix(RB_Node *node,RB_Tree *tree);
 
+
+RB_Node *min(RB_Tree *tree,RB_Node *node);
 void rotateRight(RB_Tree *tree,RB_Node *node);
 void rotateLeft(RB_Tree *tree,RB_Node *node);
+void rbDelete(RB_Tree *tree, RB_Node *node);
 
 RB_Node* getUncle(RB_Node *node);
 RB_Node* getGrandParent(RB_Node *node);
@@ -71,11 +76,9 @@ RB_Node* createNode_(RB_Tree *tree);
 RB_Node* createNode(RB_Tree *tree,int key);
 RB_Tree* createTree();
 
-void removeNode(RB_Tree *tree, RB_Node * node);
+
 void RBremove(RB_Tree *tree,RB_Node *node, int value) ;
-
 RB_Node * sucessor(RB_Tree* tree,RB_Node* node);
-
 
 
 
@@ -151,13 +154,11 @@ RB_Node* createNode_(RB_Tree *tree){
 
 */
 void rotateLeft(RB_Tree *tree,RB_Node *node){
-
-
 	RB_Node *aux;
 	aux = node->right;
 	node->right = aux->left;
-	if(node->right != tree->external){
-		node->right->parent =  node;
+	if(aux->left != tree->external){
+		aux->left->parent =  node;
 	}
 	aux->parent = node->parent;
 	
@@ -172,7 +173,7 @@ void rotateLeft(RB_Tree *tree,RB_Node *node){
 	}
 	aux->left = node;
 	node->parent = 	aux;
-	
+
 	
 }
 
@@ -206,14 +207,14 @@ void rotateLeft(RB_Tree *tree,RB_Node *node){
 
 */
 void rotateRight(RB_Tree *tree,RB_Node *node){
-	printf("%d RR\n ",node->value);
+
+
 	RB_Node *aux;
 	aux = node->left;
 	node->left = aux->right;
-	if(node->left != tree->external){
-		node->left->parent =  node;
+	if(aux->right != tree->external){
+		aux->right->parent =  node;
 	}
-	
 	aux->parent = node->parent;
 	
 	if(node->parent == tree->external){
@@ -227,8 +228,8 @@ void rotateRight(RB_Tree *tree,RB_Node *node){
 	}
 	aux->right = node;
 	node->parent = 	aux;
-	
-	
+
+
 }
 
 
@@ -250,77 +251,21 @@ void rBFix(RB_Node *root,RB_Node *node,RB_Tree *tree){
 	RB_Node *parent = tree->external;
 	RB_Node *grandParent = tree->external;
 	
-	while(  (node != root  && node->color == RED  && node->parent->color != BLACK) ){
-
+	while( node->parent->color != BLACK) {
 		parent = node->parent;
-
-      /*
-       *   Get Parent of Node
-       *   Case : insert 6
-       *   Node -> 6
-       *        -----------Tree------------
-       *                   N10 <- Root
-       *                   / \  
-       *                 R8   12R
-       *                 / \   / \
-       *    Parent ->  7N  9N 11N 13N
-       *               /  \/ \ / \ / \
-       *  New Node->  6R
-	   *
-       */
 		grandParent = getGrandParent(node);
-      /*
-       *  Get GrandParent of Node
-       *   Case : insert 6
-       *   Node -> 6
-       *        -----------Tree------------
-       *                   N10 <- Root
-       *                  / \  
-       *    grandParent-> R8   12R
-       *                 / \   / \
-       *    Parent->   7N  9N 11N 13N
-       *               /  \/ \ / \ / \
-       *  New Node->  6R  NN N N N N  N
-       *
-       */
+		
 		if(parent == grandParent->left){
 
-     	/*
-		 *	Case insertion Form Left 
-		 *	Case : insert 6
-		 *	Node -> 6
-		 *	Uncle -> 9N*
-		 *		-----------Tree------------
-		 *					N10 <- Root
-		 *					/  \  
-		 *	grandParent-> R8   12R
-         *               / \   /  \
-		 *	Parent->   7N  9N* 11N 13N
-         *             /  \/ \ / \ / \
-		 *	New Node->6R  NN N N N N  N
-         */		
 			RB_Node * uncle;
-			uncle  = getUncle(node); // Uncle -> 9N
+			uncle  = getUncle(node);
 			if( (uncle != tree->external) && ( uncle->color == RED ) ){
 
-			    /*
-			        Case Uncle Color = RED
-			        The GrandParent will need change the color to RED 
-			        parent and uncle will change color to BLACK
-			        
-			    */
 				grandParent->color = RED; 
 				parent->color = BLACK;
 				uncle->color = BLACK;
 				node = grandParent;
 			}else{
-
-			    /*
-			        In Other Case 
-			        a Left Rotation will be make
-			        case the insertion is from right
-			        or Right Rotation case insertion is from Left
-			    */
 				if(node == parent->right){
 
 					rotateLeft(tree,parent);
@@ -328,19 +273,13 @@ void rBFix(RB_Node *root,RB_Node *node,RB_Tree *tree){
 					parent = node->parent;
 					
 				}
-
 				rotateRight(tree, grandParent);
-				/*
-				    in this case we need change the color of
-				    parent with the grandParent color
-				
-				*/
 				Color aux = parent->color;
                 parent->color= grandParent->color;
                 grandParent->color = aux;
                 node = parent;
 				
-		  }
+		      }
 		}else{
 
 			RB_Node * uncle;
@@ -353,8 +292,6 @@ void rBFix(RB_Node *root,RB_Node *node,RB_Tree *tree){
 				uncle->color = BLACK;
 				node = grandParent;
 			}else{
-
-
 				if(node == parent->left){
 
 					rotateRight(tree,parent);
@@ -362,18 +299,11 @@ void rBFix(RB_Node *root,RB_Node *node,RB_Tree *tree){
 					parent = node->parent;
 					
 				}
-
 				rotateLeft(tree, grandParent);
-				/*
-				    in this case we need change the color of
-				    parent with the grandParent color
-				
-				*/
 				Color aux = parent->color;
                 parent->color= grandParent->color;
                 grandParent->color = aux;
                 node = parent;
-
 	    	}
 		
 	    }
@@ -381,119 +311,139 @@ void rBFix(RB_Node *root,RB_Node *node,RB_Tree *tree){
 	tree->root->color = BLACK;
 }
 
+void rbDelete(RB_Tree *tree, RB_Node *node){
+        Color red;
+        RB_Node *root = tree->root;
+        RB_Node *NIL = tree->external;
+        RB_Node *subst, *temp, *w;
 
-void rBDelFix(RB_Node *node,RB_Tree *tree){
-    RB_Node *aux;
-    while(node != tree->root && node->color  == BLACK){
-    
-        if(node == node->parent->left){ //Case Left
+        if (node == NIL) {
+                return;
+        } else if (node->left == NIL) {
+                temp = node->right;
+                subst = node;
+        } else if (node->right == NIL) {
+                temp = node->left;
+                subst = node;
+        } else {
+                subst = min(tree,node->right);
+                temp = subst->right;
+               
+        }
 
-            aux = node->parent->right;
-            
-            if(aux->color == RED){  
-        //Case 1
-        /*
-                   |                              |
-                   2b                             4b
-                 /  \                            /  \
-         Node-> 1b   4r <- Aux      =>          2r   5b
-               /   /  \                        / \   / \
-             ...  3b   5b             Node->  1b  3b <- Aux
-                 / \  / \                     / \ / \
-               ...  ..   ..                  .. .. ...
-        */
-                aux->color = BLACK;
-                node->parent->color = RED;
-                rotateLeft(tree,node->parent);
-                aux = node->parent->right;
-            }
-            if(aux->left->color == BLACK && aux->right->color == BLACK){      
-        // Case 2
-        /*
-                   |                              |
-                   2r                     Node->  2r
-                 /  \                            /  \
-        Node-> 1b   4b <- Aux      =>          1b   4r
-               / \  /  \                       / \   / \
-             ...  3b   5b                     ...   3b  5b 
-                 / \  / \                          / \ / \
-               ...  ..   ..                       .. .. ...
-        */            
-                aux->color = RED;
-                node = node->parent;
-            }else{
-                if(aux->right->color ==  BLACK){ 
-        // Case 3
-        /*
-                   |                               |
-                   2r                              2r
-                 /  \                             /  \
-         Node-> 1b   4b <- Aux      =>   Node-> 1b    3b <- Aux
-               / \  /  \                        / \   / \
-             ...   3r   5b                     ...  ..   4r
-                  / \  / \                              / \
-               ...  ..   ..                            ..  5b
-                                                          / \
-                                                        ... ...
-        */                            
-                    aux->left->color = BLACK;
-                    aux->color = RED;
-                    rotateRight(tree,aux);
-                    aux =  node->parent->right;
-                    
-                    
-                
+        if (subst == root) {
+                root = temp;
+                temp->color = BLACK;
+                return;
+        }
+
+        red = subst->color;
+
+        if (subst == subst->parent->left) {
+                subst->parent->left = temp;
+        } else {
+                subst->parent->right = temp;
+        }
+
+        if (subst == node) {
+                temp->parent = subst->parent;
+        } else {
+                if (subst->parent == node) {
+                        temp->parent = subst;
+                } else {
+                        temp->parent = subst->parent;
                 }
                 
-          // Case 4
-          /*
-                   |                               |
-                   2r                              4r
-                 /  \                             /  \
-          Node->1b   4b <- Aux       =>         2b    5b
-               / \  /  \                        / \   / \
-             ...   3r   5r                    1b   3r ....
-                  / \  / \                    / \  / \      
-               ...  ..   ..                 ..  .. .. ..          
-                                                      
-                                            
-        */                            
-                aux->color = node->parent->color;
-                node->parent->color = BLACK;
-                aux->right->color = BLACK;
-                rotateLeft(tree,node->parent);
-                node = tree->root; // End of Loop
-            }
-        }else{// Case Right
-            aux = node->parent->left;   
-            if(aux->color == RED){ // Case 1
-                aux->color = BLACK;
-                node->parent->color = RED;
-                rotateRight(tree,node->parent);
-                aux = node->parent->left;
-            }
-            if(aux->left->color == BLACK && aux->left->color == BLACK){ //Case 2
-                aux->color = RED;
-                node = node->parent;
-            }else{
-                if(aux->left->color ==  BLACK){ //Case 3
-                    aux->right->color = BLACK;
-                    aux->color = RED;
-                    rotateRight(tree,aux);
-                    aux =  node->parent->left;
+                subst->left = node->left;
+                subst->right = node->right;
+                subst->parent = node->parent;
+                subst->color =  node->color;
                 
+                if (node == root) {
+                        root->value = subst->value;
+                } else {
+                        if (node == node->parent->left) {
+                                node->parent->left = subst;
+                        } else {
+                                node->parent->right = subst;
+                        }
                 }
-                aux->color = node->parent->color; //Case 4
-                node->parent->color = BLACK;
-                aux->left->color = BLACK;
-                rotateRight(tree,node->parent);
-                node = tree->root;             
-            }
-    
-    
-       }
-    
-    }   
+
+                if (subst->left != NIL) {
+                        subst->left->parent = subst;
+                }
+
+                if (subst->right != NIL) {
+                        subst->right->parent = subst;
+                }
+        }
+        if (red) {
+                return;
+        }
+
+
+        while (temp != root && temp->color == BLACK) {
+
+                if (temp == temp->parent->left) {
+                        w = temp->parent->right;
+
+                        if (w->color == RED) {
+                                w->color = BLACK;
+                                temp->parent->color = RED;
+                                rotateLeft(tree,temp->parent);
+                                w = temp->parent->right;
+                        }
+
+                        if (w->left->color == BLACK && w->right->color == BLACK) {
+                                w->color =RED;
+                                temp = temp->parent;
+                        } else {
+                                if (w->right->color == BLACK) {
+                                        w->left->color = BLACK;
+                                        w->color = RED;
+                                        rotateRight(tree, w);
+                                        w = temp->parent->right;
+                                }
+
+                                w->color =  temp->parent->color;
+                                temp->parent->color = BLACK;
+                                w->right->color = BLACK;
+                                rotateLeft(tree, temp->parent);
+                                temp = root;
+                        }
+
+                } else {
+                        w = temp->parent->left;
+
+                        if (w->color == RED) {
+                                w->color = BLACK;
+                                temp->parent->color = RED;
+                                rotateRight(tree, temp->parent);
+                                w = temp->parent->left;
+                        }
+
+                        if (w->left->color == BLACK && w->right->color == BLACK) {
+                                w->color = RED;
+                                temp = temp->parent;
+                        } else {
+                                if (w->left->color == BLACK) {
+                                        w->right->color = BLACK;
+                                        w->color = RED;
+                                        rotateLeft(tree, w);
+                                        w = temp->parent->left;
+                                }
+
+                                w->color = temp->parent->color ;
+                                temp->parent->color = BLACK;
+                                w->left->color = BLACK;
+                                rotateRight(tree, temp->parent);
+                                temp = root;
+                        }
+                }
+        }
+
+        temp->color = BLACK;
+      
 }
 
 
@@ -583,27 +533,14 @@ void preorder(RB_Tree *tree,RB_Node *node){
 }
 
 
-
-RB_Node * sucessor(RB_Tree* tree,RB_Node* node) { 
-  RB_Node* aux;
-
-  if ( node->right != tree->external) { 
-        aux = node;
-        while(aux->left != tree->external) {
-          aux = aux->left;
-        }
-    return aux;
     
-  }else{
-    aux= node->parent;
-    while(node == aux->right) {
-      node = aux;
-      aux  = aux->parent;
-    }
-    if (aux == tree->root) 
-        return tree->external;
-    return aux;
+RB_Node *min(RB_Tree *tree,RB_Node *node){
+  RB_Node *current = node;
+    
+    while (current->left != tree->external) {
+    current = current->left;
   }
+  return current;
 }
 
 void RBremove(RB_Tree *tree,RB_Node *node, int value) {
@@ -611,7 +548,7 @@ void RBremove(RB_Tree *tree,RB_Node *node, int value) {
     if (node != tree->external) {
 
         if (node->value == value) {
-            removeNode(tree,node);
+                rbDelete(tree,node);
         }
         else {
 
@@ -632,38 +569,6 @@ void RBremove(RB_Tree *tree,RB_Node *node, int value) {
 
 }
 
-void removeNode(RB_Tree *tree, RB_Node * node){
-  RB_Node *aux;
-  RB_Node *aux_aux;
-  RB_Node *root= tree->root;
-
-  if(node->left != tree->external || node->right != tree->external)// If node Have Child
-     aux =  sucessor(tree,node); //Get The Sucessor of Node 
-  else // C.C
-     aux = node;
-     
-  if(aux->left == tree->external) // If the Node Have only one Child we get the child
-    aux_aux = aux->right;
-  else
-    aux_aux  = aux->left;
-    
-  aux_aux->parent = aux->parent;
-
-  if(aux->parent == tree->external) // If The Parent is External the Node is The ROOT
-      root = aux_aux;
-  else{//C.C
-      if(aux == aux->parent->left) // Change the Brother of Node
-        aux->parent->left = aux_aux;
-      else
-        aux->parent->right = aux_aux;
- }
- if(aux != node) // Change the Value o Node
-     node->value = aux->value;
- if(aux->color == BLACK) // If node Is Black we have Violations of Rules
-     rBDelFix(aux_aux,tree); 
-    
-
-}
 int height(RB_Tree *tree,RB_Node *node){
 	int hLeft = 0;
 	int hRight = 0;
@@ -719,97 +624,108 @@ void DFS( RB_Tree *tree ) {
 }
 
 
-void bst_print_dot_null(int key, int nullcount, FILE* stream)
+void rbDotNil(int key, int nullcount, FILE* stream)
 {
-    fprintf(stream, "    null%d [label=\"NIL\", shape=record];\n", nullcount);
-    fprintf(stream, "    %d -> null%d;\n", key, nullcount);
+    fprintf(stream, "    null%d [label=\"NIL\", shape=record, width=.4,height=.25, fontsize=16];\n", nullcount);
+    fprintf(stream, "    %d -> null%d ;\n", key, nullcount);
 }
 
-void bst_print_dot_aux(RB_Tree *tree, RB_Node * node, FILE* stream)
+void rbToDot(RB_Tree *tree, RB_Node * node, FILE* stream)
 {
     static int nullcount = 0;
 
     if (node->left != tree->external)
     {
         if(node->left->color == RED)
-            fprintf(stream, "    %d [fillcolor=red]\n%d -> %d ;\n", node->left->value,node->value, node->left->value);
+            fprintf(stream, "    %d [fillcolor=red]\n%d -> %d;\n", node->left->value,node->value, node->left->value);
         else
             fprintf(stream, "    %d -> %d ;\n", node->value, node->left->value);
-        bst_print_dot_aux(tree,node->left, stream);
+        rbToDot(tree,node->left, stream);
     }
     else
-        bst_print_dot_null(node->value, nullcount++, stream);
+        rbDotNil(node->value, nullcount++, stream);
 
     if (node->right != tree->external)
     {
         if(node->right->color == RED)
-            fprintf(stream, "    %d[fillcolor=red]\n%d -> %d;\n",node->right->value, node->value, node->right->value);
+            fprintf(stream, "    %d[fillcolor=red]\n%d -> %d [weight=%d];\n",node->right->value, node->value, node->right->value);
         else
-            fprintf(stream, "    %d -> %d;\n", node->value, node->right->value);
-        bst_print_dot_aux(tree,node->right, stream);
+            fprintf(stream, "    %d -> %d ;\n", node->value, node->right->value);
+        rbToDot(tree,node->right, stream);
     }
     else
-        bst_print_dot_null(node->value, nullcount++, stream);
+        rbDotNil(node->value, nullcount++, stream);
 }
 
-void bst_print_dot(RB_Tree* tree,RB_Node *node, FILE* stream)
+void rbDot(RB_Tree* tree,RB_Node *node, FILE* stream)
 {
     fprintf(stream, "digraph RBTREE {\n");
     fprintf(stream, "  graph [ratio=.48];\nnode [style=filled, color=black, shape=circle, width=.6\nfontname=Helvetica,fontweight=bold, fontcolor=white,fontsize=24, fixedsize=true];\n");
 
-    if (node == tree->external)
-        fprintf(stream, "\n");
-    else if (node->right == tree->external && node->left == tree->external)
-        fprintf(stream, "    %d;\n", node->value);
-    else
-        bst_print_dot_aux(tree,node, stream);
+    rbToDot(tree,node, stream);
 
     fprintf(stream, "}\n");
 }
 
 int main(){
-    RB_Tree *tree1;
-    
+    RB_Tree *tree1;    
     tree1 = createTree();
-    
-    
- 
-    insert(tree1,10);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
- 
-    insert(tree1,15);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-       
-    insert(tree1,4);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-    
-    insert(tree1,5);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-    
-    insert(tree1,6);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");
-    
-    insert(tree1,3);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-    
-    insert(tree1,2);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");        
-    insert(tree1,12);
-    DFS(tree1 );    
-    puts(COLOR_RESET"--------------------------");    
-
-
+    int fim =1;
+    int val;
+    int op =0 ;
+    int qt;
+    char *str;
+    char *syt;
+    char *dot;
     FILE *arq;
-    arq = fopen("tree.dot","w");
-    bst_print_dot(tree1,tree1->root, arq);
-    system("dot -Tsvg tree.dot -o tree.svg");
+    int tam;
+    do{
+        puts(COLOR_RESET"Rubro Negra\n1-> inserir Nó\n2->Remover Nó\n3->Mostrar Árvore\n4->Gerar Grafo\n5->Sair");
+        scanf("%d",&op);
+        system("clear");        
+        switch(op){
+
+            case 1:
+                puts("Digite a quntidade de Nós à Ser Inserida");
+                scanf("%d",&qt);
+                puts("Digite os Valores das Chaves");
+
+                for(int b = 0 ; b < qt ; b++){
+                    scanf("%d",&val);
+                    insert(tree1,val);
+                }
+                break;
+            case 2:
+                puts("Digite o Valor da Chave");
+                scanf("%d",&val);
+                RBremove(tree1,tree1->root,val);
+                break;                
+            case 3:
+                DFS(tree1 );    
+                break;       
+            case 4:
+                str = malloc(30);
+                puts("nome do Arquivo");
+                scanf("%s.dot",str);
+
+                dot = malloc(7);
+                snprintf(dot, 40, "%s%s", str,".png");
+                printf("%s\n",dot);
+
+                arq = fopen(str,"w");
+                rbDot(tree1,tree1->root, arq);
+                fclose(arq);
+                tam = 100;
+                syt = malloc(tam);
+
+                snprintf(syt,tam,"%s%s%s%s","sudo dot -Tpng ",str," -o ",dot);
+                system(syt);
+                break;
+            case 5:
+                fim = 0;
+                break;
+       }
+    }while(fim != 0);
     return 0;
 }
 
