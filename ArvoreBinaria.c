@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <stdlib.h>
 typedef struct node
 {
   int value;
@@ -10,66 +10,42 @@ typedef struct node
 
 Node *root = 0;
 
-
-int search(Node ** tree, int val){
-    if( ! ( *tree ) ){
+// A função busca retorna 1 caso a chave exista na arvore e 0 caso contrário
+int search(Node *root, int val){
+    if(root == NULL ){
         return 0;
     }
-    if( val < ( *tree )-> value ){
-        search( &( ( *tree )-> left ), val );
-    }else if( val > ( *tree ) -> value){
-        search( &( ( *tree ) -> right ), val );
-    }else if( val == ( *tree )-> value ){
+    if( val  <root-> value ){
+        search(root->left, val );
+    }else if( val > root-> value){
+        search( root-> right, val );
+    }else if( val == root-> value ){
         return 1;
     }
 }
 
-void insert(int key, Node **leaf){
-    if( *leaf == 0 ){
-        *leaf = (Node*) malloc( sizeof( Node ) );
-        (*leaf)->value = key;
-        (*leaf)->left = 0;    
-        (*leaf)->right = 0;  
+Node *insert(int key, Node *root){
+    if( root == NULL ){
+        root = (Node*) malloc( sizeof( Node ) );
+        root->value = key;
+        root->left = 0;    
+        root->right = 0;  
+        return root;
     }
-    else if(key < (*leaf)->value)
+    else if(key < root->value)
     {
-        insert( key, &(*leaf)->left );
+      
+       root->left = insert( key, root->left );
     }
-    else if(key > (*leaf)->value)
+    else if(key > root->value)
     {
-        insert( key, &(*leaf)->right );
+        
+        root->right = insert( key, root->right );
     }
 }
 
 
-void print_inorder(Node * tree)
-{
-    if (tree)
-    {
-        print_inorder(tree->left);
-        printf("%d\n",tree->value);
-        print_inorder(tree->right);
-    }
-}
-void print_preorder(Node * tree)
-{
-    if (tree)
-    {
-        printf("%d\n",tree->value);
-        print_preorder(tree->left);
-        print_preorder(tree->right);
-    }
-
-}
-void print_posorder(Node * tree)
-{
-    if (tree)
-    {
-        print_inorder(tree->left);
-        print_inorder(tree->right);
-        printf("%d\n",tree->value);
-    }
-}
+// Calcula a Altura da Arvore
 int height (Node *node){
    if(node){
        
@@ -82,6 +58,15 @@ int height (Node *node){
       return 0;   
    }
 }
+int min(Node *raiz) {
+        int min = raiz->value;
+        while (raiz->left != NULL) {
+            min = raiz->left->value;
+            raiz = raiz->left;
+        }
+        return min;
+}
+
 
 Node *removerChave(Node *raiz, int chave) {
         if (raiz == NULL) {
@@ -105,39 +90,56 @@ Node *removerChave(Node *raiz, int chave) {
         }
 
         return raiz;
+}
+
+
+void print_inorder(Node * tree){
+    if (tree){
+        print_inorder(tree->left);
+        printf("%d\n",tree->value);
+        print_inorder(tree->right);
+    }
+}
+void print_preorder(Node * tree){
+    if (tree){
+        printf("%d\n",tree->value);
+        print_preorder(tree->left);
+        print_preorder(tree->right);
     }
 
-    int min(Node *raiz) {
-        int min = raiz->value;
-        while (raiz->left != NULL) {
-            min = raiz->left->value;
-            raiz = raiz->left;
-        }
-        return min;
+}
+void print_posorder(Node * tree){
+    if (tree){
+        print_inorder(tree->left);
+        print_inorder(tree->right);
+        printf("%d\n",tree->value);
     }
-
+}
+  
 
 int main(void){
       int tmp;
       root = NULL; 
-      insert(60,&root); 
-      insert(20,&root);
-      insert(30,&root);
-      insert(10,&root);
-      insert(70,&root);
-      insert(100,&root);
-      insert(50,&root);
-      insert(40,&root);
+      root = insert(60,root); 
+      root = insert(20,root);
+      root = insert(30,root);
+      root = insert(10,root);
+      root = insert(70,root);
+      root = insert(100,root);
+      root = insert(50,root);
+      root = insert(40,root);
+
+
       root= removerChave(root,30);
       printf("IN ORDEM\n");
       print_inorder(root);
       printf("-----------------------------\n");
       printf("Busca Pelo Nó 20\n");
-      tmp = search(&root,20);
+      tmp = search(root,20);
       printf( "%s\n", (tmp == 1) ? "True": "False" );
       printf("-----------------------------\n");
       printf("Busca Pelo Nó 200\n");
-      tmp = search(&root,200);
+      tmp = search(root,200);
       printf( "%s\n", (tmp == 1) ? "True": "False" );
       printf("-----------------------------\n");
       printf("Altura da Árvore\n");
