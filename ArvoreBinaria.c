@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-typedef struct Node
+typedef struct node
 {
   int value;
   struct node *left;
@@ -24,10 +24,8 @@ int search(Node ** tree, int val){
     }
 }
 
-insert(int key, Node **leaf)
-{
-    if( *leaf == 0 )
-    {
+void insert(int key, Node **leaf){
+    if( *leaf == 0 ){
         *leaf = (Node*) malloc( sizeof( Node ) );
         (*leaf)->value = key;
         (*leaf)->left = 0;    
@@ -63,6 +61,15 @@ void print_preorder(Node * tree)
     }
 
 }
+void print_posorder(Node * tree)
+{
+    if (tree)
+    {
+        print_inorder(tree->left);
+        print_inorder(tree->right);
+        printf("%d\n",tree->value);
+    }
+}
 int height (Node *node){
    if(node){
        
@@ -74,7 +81,42 @@ int height (Node *node){
    }else{
       return 0;   
    }
-}     
+}
+
+Node *removerChave(Node *raiz, int chave) {
+        if (raiz == NULL) {
+            return raiz;
+        }
+
+        if (chave < raiz->value) {
+            raiz->left =  removerChave(raiz->left, chave);
+        } else if (chave > raiz->value) {
+            raiz->right = removerChave(raiz->right, chave);
+        } else {
+            if (raiz->left == NULL) {
+                return raiz->right;
+            } else if (raiz->right == NULL) {
+                return raiz->left;
+            }
+
+            raiz->value = min(raiz->right);
+
+            raiz->right = removerChave(raiz->right, chave);
+        }
+
+        return raiz;
+    }
+
+    int min(Node *raiz) {
+        int min = raiz->value;
+        while (raiz->left != NULL) {
+            min = raiz->left->value;
+            raiz = raiz->left;
+        }
+        return min;
+    }
+
+
 int main(void){
       int tmp;
       root = NULL; 
@@ -86,7 +128,7 @@ int main(void){
       insert(100,&root);
       insert(50,&root);
       insert(40,&root);
-
+      root= removerChave(root,30);
       printf("IN ORDEM\n");
       print_inorder(root);
       printf("-----------------------------\n");
@@ -102,4 +144,3 @@ int main(void){
       printf("%d\n", height(root));
       
 }
-
